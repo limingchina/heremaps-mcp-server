@@ -1,0 +1,29 @@
+{
+    "name": "@heremaps/heremaps-mcp-server",
+    "version": "0.0.1",
+    "description": "MCP server for using the HERE Maps API",
+    "author": "",
+    "homepage": "",
+    "bugs": "",
+    "type": "module",
+    "bin": {
+        "heremaps-mcp-server": "dist/index.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc && shx chmod +x dist/*.js",
+        "prepare": "npm run build",
+        "watch": "tsc --watch"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "1.9.0",
+        "@types/node-fetch": "^2.6.12",
+        "node-fetch": "^3.3.2"
+    },
+    "devDependencies": {
+        "shx": "^0.3.4",
+        "typescript": "^5.8.3"
+    }
+}
