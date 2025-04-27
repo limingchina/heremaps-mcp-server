@@ -2,6 +2,7 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { decode } from "@here/flexpolyline"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -50,6 +51,9 @@ interface RoutingResponse {
         duration: number;
         length: number;
       };
+      actions: Array<{
+        instruction: string;
+      }>;
       polyline: string;
     }>;
   }>;
@@ -72,13 +76,18 @@ interface PlacesSearchResponse {
 }
 
 interface TrafficIncidentsResponse {
-  TRAFFIC_ITEMS: Array<{
-    description: string;
+  sourceUpdated: string;
+  results : Array<{
     location: {
-      latitude: number;
-      longitude: number;
+      length: number;
     };
-    severity: string;
+    incidentDetails: {
+      description: string;
+      startTime: string;
+      endTime: string;
+      criticality: string;
+      type: string;
+    };    
   }>;
 }
 
@@ -145,7 +154,7 @@ const ROUTING_TOOL: Tool = {
       transportMode: {
         type: "string",
         description: "Mode of transport (car, pedestrian, bicycle, etc.)",
-        enum: ["car", "pedestrian", "bicycle", "truck", "scooter"],
+        enum: ["car", "pedestrian", "bicycle", "truck", "scooter", "bus", "taxi"],        
       },
     },
     required: ["origin", "destination", "transportMode"],
@@ -169,11 +178,7 @@ const PLACES_SEARCH_TOOL: Tool = {
       query: {
         type: "string",
         description: "Search query (e.g., 'coffee', 'restaurant')",
-      },
-      radius: {
-        type: "number",
-        description: "Search radius in meters",
-      },
+      }
     },
     required: ["latitude", "longitude", "query"],
   },
@@ -181,16 +186,20 @@ const PLACES_SEARCH_TOOL: Tool = {
 
 const TRAFFIC_TOOL: Tool = {
   name: "maps_get_traffic_incidents",
-  description: "Retrieve traffic incidents within a bounding box or along a route",
+  description: "Retrieve traffic incidents within a circle",
   inputSchema: {
     type: "object",
     properties: {
-      boundingBox: {
+      center: {
         type: "string",
-        description: "Bounding box in 'south,west;north,east' format",
+        description: "center coordinates in 'latitude,longitude' format",
+      },
+      radius: {
+        type: "number",
+        description: "radius in meters, default is 1000 meters",
       },
     },
-    required: ["boundingBox"],
+    required: ["center", "radius"],
   },
 };
 
@@ -290,7 +299,7 @@ async function handleRouting(
   url.searchParams.append("origin", origin);
   url.searchParams.append("destination", destination);
   url.searchParams.append("transportMode", transportMode);
-  url.searchParams.append("return", "summary,polyline");
+  url.searchParams.append("return", "summary,polyline,actions,instructions");
   url.searchParams.append("apiKey", HERE_MAPS_API_KEY);
 
   const response = await fetch(url.toString());
@@ -309,6 +318,7 @@ async function handleRouting(
   }
 
   const route = data.routes[0];
+  const polyline = decode(route.sections[0].polyline).polyline;
   return {
     content: [
       {
@@ -316,10 +326,14 @@ async function handleRouting(
         text: JSON.stringify(
           {
             summary: route.sections[0].summary,
-            polyline: route.sections[0].polyline,
+            polyline: polyline.map((point) => [
+              parseFloat(point[0].toFixed(5)),
+              parseFloat(point[1].toFixed(5)),
+            ]),
+            actions: route.sections[0].actions,
           },
           null,
-          2
+          0
         ),
       },
     ],
@@ -327,11 +341,10 @@ async function handleRouting(
   };
 }
 
-async function handlePlacesSearch(latitude: number, longitude: number, query: string, radius: number) {
-  const url = new URL("https://browse.search.hereapi.com/v1/browse");
+async function handlePlacesSearch(latitude: number, longitude: number, query: string) {
+  const url = new URL("https://discover.search.hereapi.com/v1/discover");
   url.searchParams.append("at", `${latitude},${longitude}`);
   url.searchParams.append("q", query);
-  url.searchParams.append("radius", radius.toString());
   url.searchParams.append("apiKey", HERE_MAPS_API_KEY);
 
   const response = await fetch(url.toString());
@@ -369,20 +382,21 @@ async function handlePlacesSearch(latitude: number, longitude: number, query: st
   };
 }
 
-async function handleTrafficIncidents(boundingBox: string) {
-  const url = new URL("https://traffic.ls.hereapi.com/traffic/6.3/incidents.json");
-  url.searchParams.append("bbox", boundingBox);
+async function handleTrafficIncidents(center: string, radius: number) {
+  const url = new URL("https://data.traffic.hereapi.com/v7/incidents");
+  url.searchParams.append("in", "circle:" + center + ";r=" + radius);
+  url.searchParams.append("locationReferencing", "none");
   url.searchParams.append("apiKey", HERE_MAPS_API_KEY);
 
   const response = await fetch(url.toString());
   const data = await response.json() as TrafficIncidentsResponse;
 
-  if (!data.TRAFFIC_ITEMS || data.TRAFFIC_ITEMS.length === 0) {
+  if (!data.results || data.results.length === 0) {
     return {
       content: [
         {
           type: "text",
-          text: `No traffic incidents found for bounding box: ${boundingBox}`,
+          text: `No traffic incidents found in the radius of ${radius} meters around ${center}`,
         },
       ],
       isError: true,
@@ -394,18 +408,33 @@ async function handleTrafficIncidents(boundingBox: string) {
       {
         type: "text",
         text: JSON.stringify(
-          data.TRAFFIC_ITEMS.map((item: any) => ({
-            description: item.description,
-            location: item.location,
-            severity: item.severity,
+          data.results.slice(0,10).map((result: any) => ({
+            description: result.incidentDetails.description,
+            startTime: result.incidentDetails.startTime,
+            endTime: result.incidentDetails.endTime,
+            type: result.incidentDetails.type,
+            criticality: result.incidentDetails.criticality,
           })),
           null,
-          2
+          0
         ),
       },
     ],
     isError: false,
   };
+  
+  // Debugging raw response
+  /*
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(await response.json(), null, 2),
+      },
+    ],
+    isError: false,
+  };
+  */
 }
 
 // Server setup
@@ -451,19 +480,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleRouting(origin, destination, transportMode);
       }
 
-      case "find_places_nearby": {
-        const { latitude, longitude, query, radius } = request.params.arguments as {
+      case "maps_search_places": {
+        const { latitude, longitude, query } = request.params.arguments as {
           latitude: number;
           longitude: number;
           query: string;
-          radius: number;
         };
-        return await handlePlacesSearch(latitude, longitude, query, radius);
+        return await handlePlacesSearch(latitude, longitude, query);
       }
 
-      case "get_traffic_incidents": {
-        const { boundingBox } = request.params.arguments as { boundingBox: string };
-        return await handleTrafficIncidents(boundingBox);
+      case "maps_get_traffic_incidents": {
+        const { center, radius } = request.params.arguments as { center: string; radius: number };
+        return await handleTrafficIncidents(center, radius);
       }
 
       default:
