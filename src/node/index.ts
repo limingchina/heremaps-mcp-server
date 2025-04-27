@@ -442,7 +442,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return await handleReverseGeocode(latitude, longitude);
       }
 
-      case "maps_routing": {
+      case "maps_directions": {
         const { origin, destination, transportMode } = request.params.arguments as {
           origin: string;
           destination: string;
