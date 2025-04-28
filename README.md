@@ -8,45 +8,54 @@ The aim is to allow LLMs to interact with HERE Maps services like Geocoding, Rev
 
 ## HERE Maps Tools (MCP Mapping)
 
-Here's a potential mapping of HERE Maps services to MCP tools:
+The following HERE Maps services are implemented as MCP tools:
 
 1.  **Geocoding:**
     *   **MCP Tool:** `maps_geocode`
-    *   **Description:** Converts a street address into geographic coordinates (latitude, longitude).
+    *   **Description:** Convert an address into geographic coordinates
     *   **HERE API:** [Geocoding & Search API v7 - Geocode](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
     *   **Input:** `address` (string)
-    *   **Output:** `latitude`, `longitude`, `formatted_address`, `confidence`
+    *   **Output:** JSON with `location` (lat/lng coordinates), `address` (formatted address), and `id`
 
 2.  **Reverse Geocoding:**
     *   **MCP Tool:** `maps_reverse_geocode`
-    *   **Description:** Converts geographic coordinates (latitude, longitude) into a human-readable address.
+    *   **Description:** Convert coordinates into an address
     *   **HERE API:** [Geocoding & Search API v7 - Reverse Geocode](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
-    *   **Input:** `latitude`, `longitude` (numbers)
-    *   **Output:** `address`, `city`, `state`, `postal_code`, `country`
+    *   **Input:** `latitude` (number), `longitude` (number)
+    *   **Output:** JSON with `address` (formatted address), `position` (lat/lng coordinates), and `id`
 
 3.  **Routing (Directions):**
     *   **MCP Tool:** `maps_directions`
-    *   **Description:** Calculates driving directions between two points (by coordinates or address).
+    *   **Description:** Get directions between two points using HERE Maps Routing API
     *   **HERE API:** [Routing API v8](https://developer.here.com/documentation/routing-api/api-reference-swagger.html)
-    *   **Input:** `origin_lat`, `origin_lon`, `destination_lat`, `destination_lon` (or `origin_address`, `destination_address`)
-    *   **Output:** `distance` (meters/km), `duration` (seconds/minutes), `route_summary` (text instructions)
+    *   **Input:** 
+        * `origin` (string in 'latitude,longitude' format)
+        * `destination` (string in 'latitude,longitude' format)
+        * `transportMode` (string: "car", "pedestrian", "bicycle", "truck", "scooter", "bus", "taxi")
+    *   **Output:** JSON with `summary` (duration and length), `polyline` (route coordinates), and `actions` (navigation instructions)
 
 4.  **Places Search (Points of Interest):**
     *   **MCP Tool:** `maps_search_places`
-    *   **Description:** Searches for places (like restaurants, ATMs, etc.) near a specific location.
-    *   **HERE API:** [Geocoding & Search API v7 - Browse/Discover](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
-    *   **Input:** `latitude`, `longitude`, `query` (e.g., "coffee"), `radius` (meters)
-    *   **Output:** List of places, each with `name`, `address`, `latitude`, `longitude`, `category`
+    *   **Description:** Search for places (e.g., restaurants, ATMs) near a specific location
+    *   **HERE API:** [Geocoding & Search API v7 - Discover](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
+    *   **Input:** `latitude` (number), `longitude` (number), `query` (string, e.g., "coffee", "restaurant")
+    *   **Output:** List of places, each with `name`, `address`, `position` (lat/lng coordinates), and `category`
 
-5.  **Traffic Information:** (Optional, more complex)
+5.  **Traffic Information:**
     *   **MCP Tool:** `maps_get_traffic_incidents`
-    *   **Description:** Retrieves traffic incidents within a bounding box or along a route.
-    *   **HERE API:** [Traffic API v8](https://developer.here.com/documentation/traffic-api/api-reference-swagger.html)
-    *   **Input:** `bounding_box` (coordinates) or `route_id`
-    *   **Output:** List of incidents with `description`, `location`, `severity`
+    *   **Description:** Retrieve traffic incidents within a circle
+    *   **HERE API:** [Traffic API v7](https://developer.here.com/documentation/traffic-api/api-reference-swagger.html)
+    *   **Input:**
+        * `center` (string in 'latitude,longitude' format)
+        * `radius` (number in meters)
+    *   **Output:** List of incidents with `description`, `startTime`, `endTime`, `type`, and `criticality`
 
 ## Getting Started
 
+1. Set up your HERE Maps API Key:
+   ```bash
+   export HERE_MAPS_API_KEY=your_api_key_here
+   ```
 
 ## MCP Integration
 
@@ -55,10 +64,10 @@ Here's a potential mapping of HERE Maps services to MCP tools:
 
 Refer to the official HERE Developer Portal for detailed API references:
 
-*   [HERE Geocoding & Search API v7](https://developer.here.com/documentation/geocoding-search-api/)
-*   [HERE Routing API v8](https://developer.here.com/documentation/routing-api/)
-*   [HERE Traffic API v8](https://developer.here.com/documentation/traffic-api/)
-*   [Authentication Guide (API Key)](https://developer.here.com/documentation/identity-access-management/dev_guide/topics/sdk.html#step-1-get-credentials) - Note: You'll likely use the simple API Key method for server-side calls.
+*   [HERE Geocoding & Search API v7](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
+*   [HERE Routing API v8](https://www.here.com/docs/bundle/routing-api-v8-api-reference/page/index.html)
+*   [HERE Traffic API v7](https://www.here.com/docs/bundle/traffic-api-v7-api-reference/page/index.html)
+*   [Authentication Guide (API Key)](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/manage-apps.html) - Note: You'll likely use the simple API Key method for server-side calls.
 
 ## Contributing
 
