@@ -52,13 +52,88 @@ The following HERE Maps services are implemented as MCP tools:
 
 ## Getting Started
 
-1. Set up your HERE Maps API Key:
-   ```bash
-   export HERE_MAPS_API_KEY=your_api_key_here
+1. Set up your HERE Maps API Key by checking [Authentication Guide (API Key)](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/manage-apps.html)
+2. Add the MCP server configuration to the MCP client, for example, Claude.
+   "Settings"->"Developer"->"Edit Config"
+   ```json
+   {
+     "mcpServers": {
+     "here-maps": {
+       "command": "npx",
+       "args": [
+         "-y",
+         "/<You local checkout directory of this project>/src/node"
+       ],
+       "env": {
+         "HERE_MAPS_API_KEY": "<YOUR_HERE_API_KEY>"
+       }
+     }
+    }
+   }
    ```
+3. Some MCP clients such as Claude require restart the app so that the new settings take effect.
+ 
+## Example usage:
+1. Find some French restaurants in Central Berlin.
+   This should trigger the geocode tool call to find out the geo coordinates of central Berlin. Then the place search tool call will be triggered. This is the sample output. The  search result output is abbreviated. 
+   ```
+   I'd be happy to help you find some French restaurants in central Berlin. Let me search for places that should suit your needs.
+   maps_geocode
+   Request{
+     `address`: `Central Berlin, Germany`
+   }
+   Response{
+     "location": {
+        "lat": 52.52427,
+        "lng": 13.4026
+     },
+     "address": "Central, Rosenthaler Straße 39, 10178 Berlin, Deutschland",
+     "id": "here:pds:place:276u33db-602fbe3989e243d38221c312af23a0e1"
+   }
+   Now I'll search for French restaurants in this area
+   maps_search_places
+   Request{
+     `query`: `French restaurant`,
+     `latitude`: 52.52427,
+     `longitude`: 13.4026
+   }
+   Response[
+     {
+       "name": "Oxymoron",
+       "address": "Oxymoron, Rosenthaler Straße 40, 10178 Berlin, Deutschland",
+       "position": {
+         "lat": 52.52401,
+         "lng": 13.40249
+       },
+       "category": "Restaurant"
+     },
+     {
+       "name": "Barist",
+       "address": "Barist, Am Zwirngraben 13, 10178 Berlin, Deutschland",
+       "position": {
+         "lat": 52.5229,
+         "lng": 13.4024
+       },
+       "category": "Bar oder Pub"
+     }
+     ......<Abbreviated>
+   ]
+   Here are some excellent French restaurants in central Berlin:
 
-## MCP Integration
+   L'Ami Fritz - Located on Max-Beer-Straße 29, this authentic French restaurant is right in the heart of central Berlin.
+   Sucre Et Sel - Found on Torstraße 132, offering French cuisine with a name that means "Sugar and Salt" in French.
+   Ratatouille Berlin - Located on Ackerstraße 2, named after the famous French dish and likely offering traditional French fare.
+   Bandol sur Mer - A more upscale French restaurant on Torstraße 167, named after a coastal town in southern France known for its wines.
+   Cafe Fleury - On Weinbergsweg 20, a French-style café that likely offers classic French breakfast and lunch options.
+   Brasserie Torbar - Found on Torstraße 183, a brasserie-style restaurant offering French cuisine.
+   Les Pâtisseries de Sébastien - While primarily a patisserie on Invalidenstraße 157, this is perfect if you're looking for authentic French pastries and desserts.
 
+   All these establishments are located within central Berlin and are within relatively close proximity to one another. Would you like more specific information about any of these restaurants?RetryClaude can make mistakes. Please double-check responses.You are out of free messages until 2:00 AMUpgrade plan5 3.7 SonnetChat controls 3.7 SonnetOur most intelligent model yet Learn more
+   ```
+2. Can you calculate a route from Reinickendorf to Mitte?
+   This should trigger two geocode tool calls to find out the geo coordinates of Reinickendorf and Mitte( Two districts in Berlin). Then the routing(directions) tool call will be triggered.
+3. How is the traffic in center Paris?
+   This should trigger two geocode tool calls to find out the geo coordinates of central Paris. Then the traffic incident tool call will be triggered.
 
 ## HERE API Documentation
 
@@ -67,7 +142,6 @@ Refer to the official HERE Developer Portal for detailed API references:
 *   [HERE Geocoding & Search API v7](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
 *   [HERE Routing API v8](https://www.here.com/docs/bundle/routing-api-v8-api-reference/page/index.html)
 *   [HERE Traffic API v7](https://www.here.com/docs/bundle/traffic-api-v7-api-reference/page/index.html)
-*   [Authentication Guide (API Key)](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/manage-apps.html) - Note: You'll likely use the simple API Key method for server-side calls.
 
 ## Contributing
 
