@@ -4,7 +4,7 @@ This project provides a Model Context Protocol (MCP) compliant server that expos
 
 ## Goal
 
-The aim is to allow LLMs to interact with HERE Maps services like Geocoding, Reverse Geocoding, Routing, Traffic and Places Search through the standardized MCP interface.
+The aim is to allow LLMs to interact with HERE Maps services like Geocoding, Reverse Geocoding, Places Search, Routing, Traffic and Rendering through the standardized MCP interface.
 
 ## HERE Maps Tools
 
@@ -24,7 +24,14 @@ The following HERE Maps services are implemented as MCP tools:
     *   **Input:** `latitude` (number), `longitude` (number)
     *   **Output:** JSON with `address` (formatted address), `position` (lat/lng coordinates), and `id`
 
-3.  **Routing (Directions):**
+3.  **Places Search (Points of Interest):**
+    *   **MCP Tool:** `maps_search_places`
+    *   **Description:** Search for places (e.g., restaurants, ATMs) near a specific location
+    *   **HERE API:** [Geocoding & Search API v7 - Discover](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
+    *   **Input:** `latitude` (number), `longitude` (number), `query` (string, e.g., "coffee", "restaurant")
+    *   **Output:** List of places, each with `name`, `address`, `position` (lat/lng coordinates), and `category`
+
+4.  **Routing (Directions):**
     *   **MCP Tool:** `maps_directions`
     *   **Description:** Get directions between two points using HERE Maps Routing API
     *   **HERE API:** [Routing API v8](https://www.here.com/docs/bundle/routing-api-v8-api-reference/page/index.html)
@@ -34,13 +41,6 @@ The following HERE Maps services are implemented as MCP tools:
         * `transportMode` (string: "car", "pedestrian", "bicycle", "truck", "scooter", "bus", "taxi")
     *   **Output:** JSON with `summary` (duration and length), `polyline` (route coordinates), and `actions` (navigation instructions)
 
-4.  **Places Search (Points of Interest):**
-    *   **MCP Tool:** `maps_search_places`
-    *   **Description:** Search for places (e.g., restaurants, ATMs) near a specific location
-    *   **HERE API:** [Geocoding & Search API v7 - Discover](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
-    *   **Input:** `latitude` (number), `longitude` (number), `query` (string, e.g., "coffee", "restaurant")
-    *   **Output:** List of places, each with `name`, `address`, `position` (lat/lng coordinates), and `category`
-
 5.  **Traffic Information:**
     *   **MCP Tool:** `maps_get_traffic_incidents`
     *   **Description:** Retrieve traffic incidents within a circle
@@ -49,6 +49,16 @@ The following HERE Maps services are implemented as MCP tools:
         * `center` (string in 'latitude,longitude' format)
         * `radius` (number in meters)
     *   **Output:** List of incidents with `description`, `startTime`, `endTime`, `type`, and `criticality`
+
+6.  **Display Map:**
+    *   **MCP Tool:** `maps_display`
+    *   **Description:** Show a map with the given coordinates and zoom level
+    *   **HERE API:** [Map Image API v3](https://www.here.com/docs/bundle/map-image-api-v3-api-reference/page/index.html)
+    *   **Input:**
+        * `center` (string in 'latitude,longitude' format)
+        * `zoomLevel` (number, from 0-20, default is 14)
+        * `style` (string: "explore.day", "explore.night", "explore.satellite.day", "lite.day", "lite.night", "lite.satellite.day", "logistics.day", "logistics.night", "logistics.satellite.day", "satellite.day", "topo.day", "topo.night")
+    *   **Output:** JSON with `image_url` and a rendered map image
 
 ## Getting Started
 
@@ -103,7 +113,7 @@ This means the MCP server is running and ready to accept MCP requests. One can u
  
 ## Example usage:
 1. Find some French restaurants in Central Berlin.
-   This should trigger the geocode tool call to find out the geo coordinates of central Berlin. Then the place search tool call will be triggered. This is the sample output. The  search result output is abbreviated. 
+   This should trigger the geocode tool call to find out the geo coordinates of central Berlin. Then the place search tool call will be triggered. This is the sample output. The search result output is abbreviated. 
    ```
    I'd be happy to help you find some French restaurants in central Berlin. Let me search for places that should suit your needs.
    maps_geocode
@@ -159,9 +169,14 @@ This means the MCP server is running and ready to accept MCP requests. One can u
    All these establishments are located within central Berlin and are within relatively close proximity to one another. Would you like more specific information about any of these restaurants?RetryClaude can make mistakes. Please double-check responses.You are out of free messages until 2:00 AMUpgrade plan5 3.7 SonnetChat controls 3.7 SonnetOur most intelligent model yet Learn more
    ```
 2. Can you calculate a route from Reinickendorf to Mitte?
-   This should trigger two geocode tool calls to find out the geo coordinates of Reinickendorf and Mitte( Two districts in Berlin). Then the routing(directions) tool call will be triggered.
+   This should trigger two geocode tool calls to find out the geo coordinates of Reinickendorf and Mitte( Two districts in Berlin). Then the routing(directions) tool call will be triggered. You can explore the output in Claude.
 3. How is the traffic in center Paris?
-   This should trigger two geocode tool calls to find out the geo coordinates of central Paris. Then the traffic incident tool call will be triggered.
+   This should trigger two geocode tool calls to find out the geo coordinates of central Paris. Then the traffic incident tool call will be triggered. You can explore the output in Claude.
+4. Can you display a map for central Paris?
+   This should trigger geocode tool call to find out the geo coordinates of central Paris. Then the display tool call will be triggered.
+   In Claude, the map will be displayed in the chat window as an image inside the tool call result. Please note that it also returns a URL to the image. You can copy the URL and paste it in a browser to view the image as well. The URL contains the API key, so it's not recommended to share such chat history.
+   ![](doc/display_map_image_example.png)
+
 
 ## Other mapping-service MCP servers
 * [OpenStreetMap](https://github.com/jagan-shanmugam/open-streetmap-mcp)
