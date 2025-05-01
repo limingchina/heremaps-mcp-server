@@ -177,6 +177,12 @@ This means the MCP server is running and ready to accept MCP requests. One can u
    In Claude, the map will be displayed in the chat window as an image inside the tool call result. Please note that it also returns a URL to the image. You can copy the URL and paste it in a browser to view the image as well. The URL contains the API key, so it's not recommended to share such chat history.
    ![](doc/display_map_image_example.png)
 
+## Development
+For easier debugging, it is recommended to use the [MCP inspector tool](https://github.com/modelcontextprotocol/inspector). It starts a local webserver. One can easily check if each tool call returns the expected result given the input parameters. For this project, one can run the following command to start the MCP inspector tool:
+```bash
+cd src/node
+npm run build && npx @modelcontextprotocol/inspector -e HERE_MAPS_API_KEY=<YOU_HERE_API_KEY> node dist/index.js
+```
 
 ## Other mapping-service MCP servers
 * [OpenStreetMap](https://github.com/jagan-shanmugam/open-streetmap-mcp)
