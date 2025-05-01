@@ -485,6 +485,11 @@ async function handleDisplay(center: string, zoomLevel: number, style: string) {
   const url = "https://maps.hereapi.com/mia/v3/base/mc/center:" + 
     center + ";zoom=" + zoomLevel + "/480x370/png8?apikey=" + HERE_MAPS_API_KEY + "&style=" + style;
 
+  // Get the response and encode it as a base64 string
+  const response = await fetch(url);
+  const imageBuffer = await response.arrayBuffer();
+  const base64Image = Buffer.from(imageBuffer).toString("base64");
+
   return {
     content: [
       {
@@ -496,6 +501,11 @@ async function handleDisplay(center: string, zoomLevel: number, style: string) {
           null,
           0
         )
+      },
+      {
+        type: "image",
+        data: base64Image,
+        mimeType : "image/png",
       },
     ],
     isError: false,
