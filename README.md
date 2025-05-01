@@ -4,30 +4,30 @@ This project provides a Model Context Protocol (MCP) compliant server that expos
 
 ## Goal
 
-The aim is to allow LLMs to interact with HERE Maps services like Geocoding, Reverse Geocoding, Routing, and Places Search through the standardized MCP interface.
+The aim is to allow LLMs to interact with HERE Maps services like Geocoding, Reverse Geocoding, Routing, Traffic and Places Search through the standardized MCP interface.
 
-## HERE Maps Tools (MCP Mapping)
+## HERE Maps Tools
 
 The following HERE Maps services are implemented as MCP tools:
 
 1.  **Geocoding:**
     *   **MCP Tool:** `maps_geocode`
     *   **Description:** Convert an address into geographic coordinates
-    *   **HERE API:** [Geocoding & Search API v7 - Geocode](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
+    *   **HERE API:** [Geocoding & Search API v7 - Geocode](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
     *   **Input:** `address` (string)
     *   **Output:** JSON with `location` (lat/lng coordinates), `address` (formatted address), and `id`
 
 2.  **Reverse Geocoding:**
     *   **MCP Tool:** `maps_reverse_geocode`
     *   **Description:** Convert coordinates into an address
-    *   **HERE API:** [Geocoding & Search API v7 - Reverse Geocode](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
+    *   **HERE API:** [Geocoding & Search API v7 - Reverse Geocode](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
     *   **Input:** `latitude` (number), `longitude` (number)
     *   **Output:** JSON with `address` (formatted address), `position` (lat/lng coordinates), and `id`
 
 3.  **Routing (Directions):**
     *   **MCP Tool:** `maps_directions`
     *   **Description:** Get directions between two points using HERE Maps Routing API
-    *   **HERE API:** [Routing API v8](https://developer.here.com/documentation/routing-api/api-reference-swagger.html)
+    *   **HERE API:** [Routing API v8](https://www.here.com/docs/bundle/routing-api-v8-api-reference/page/index.html)
     *   **Input:** 
         * `origin` (string in 'latitude,longitude' format)
         * `destination` (string in 'latitude,longitude' format)
@@ -37,14 +37,14 @@ The following HERE Maps services are implemented as MCP tools:
 4.  **Places Search (Points of Interest):**
     *   **MCP Tool:** `maps_search_places`
     *   **Description:** Search for places (e.g., restaurants, ATMs) near a specific location
-    *   **HERE API:** [Geocoding & Search API v7 - Discover](https://developer.here.com/documentation/geocoding-search-api/api-reference-swagger.html)
+    *   **HERE API:** [Geocoding & Search API v7 - Discover](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
     *   **Input:** `latitude` (number), `longitude` (number), `query` (string, e.g., "coffee", "restaurant")
     *   **Output:** List of places, each with `name`, `address`, `position` (lat/lng coordinates), and `category`
 
 5.  **Traffic Information:**
     *   **MCP Tool:** `maps_get_traffic_incidents`
     *   **Description:** Retrieve traffic incidents within a circle
-    *   **HERE API:** [Traffic API v7](https://developer.here.com/documentation/traffic-api/api-reference-swagger.html)
+    *   **HERE API:** [Traffic API v7](https://www.here.com/docs/bundle/traffic-api-v7-api-reference/page/index.html)
     *   **Input:**
         * `center` (string in 'latitude,longitude' format)
         * `radius` (number in meters)
@@ -52,8 +52,36 @@ The following HERE Maps services are implemented as MCP tools:
 
 ## Getting Started
 
-1. Set up your HERE Maps API Key by checking [Authentication Guide (API Key)](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/manage-apps.html)
-2. Add the MCP server configuration to the MCP client, for example, Claude.
+Since the npm package is not yet published, currently one can only clone the repository and run the MCP server locally.
+1. Clone the repository
+```bash
+git clone https://github.com/heremaps/here-maps-mcp-server.git
+```
+
+2. Install Node.js and npm
+Follow the instructions on [Node.js website](https://nodejs.org/en/download) to install the latest version of Node.js and npm.
+
+3. Install dependencies
+```bash
+cd here-maps-mcp-server/src/node
+npm install
+```
+
+4. Obtain your HERE Maps API Key by checking [Authentication Guide (API Key)](https://www.here.com/docs/bundle/identity-and-access-management-developer-guide/page/topics/plat-using-apikeys.html)
+
+5. Run the MCP server
+```bash
+HERE_MAPS_API_KEY=<YOUR_HERE_API_KEY> npx .
+```
+This will automatically invoke the "npm run build" command, which builds the MCP server project, and then start the server. It should print the following message:
+```
+HERE Maps MCP Server running on stdio
+```
+This means the MCP server is running and ready to accept MCP requests. One can use "Ctrl-C" to stop the server. Normally, we configure the MCP server in a client application, such as Claude. The client will start the server automatically after proper configuration.
+
+## MCP configuration
+
+1. Add the MCP server configuration to the MCP client, for example, Claude.
    "Settings"->"Developer"->"Edit Config"
    ```json
    {
@@ -71,7 +99,7 @@ The following HERE Maps services are implemented as MCP tools:
     }
    }
    ```
-3. Some MCP clients such as Claude require restart the app so that the new settings take effect.
+2. Some MCP clients such as Claude require restart the app so that the new settings take effect.
  
 ## Example usage:
 1. Find some French restaurants in Central Berlin.
@@ -135,13 +163,9 @@ The following HERE Maps services are implemented as MCP tools:
 3. How is the traffic in center Paris?
    This should trigger two geocode tool calls to find out the geo coordinates of central Paris. Then the traffic incident tool call will be triggered.
 
-## HERE API Documentation
-
-Refer to the official HERE Developer Portal for detailed API references:
-
-*   [HERE Geocoding & Search API v7](https://www.here.com/docs/bundle/geocoding-and-search-api-v7-api-reference/page/index.html)
-*   [HERE Routing API v8](https://www.here.com/docs/bundle/routing-api-v8-api-reference/page/index.html)
-*   [HERE Traffic API v7](https://www.here.com/docs/bundle/traffic-api-v7-api-reference/page/index.html)
+## Other mapping-service MCP servers
+* [OpenStreetMap](https://github.com/jagan-shanmugam/open-streetmap-mcp)
+* [Google Maps](https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps)
 
 ## Contributing
 
