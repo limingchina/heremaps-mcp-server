@@ -203,12 +203,54 @@ const TRAFFIC_TOOL: Tool = {
   },
 };
 
+const DISPLAY_TOOL: Tool = {
+  name: "maps_display",
+  description: "Show a map with the given coordinates and zoom level",
+  inputSchema: {
+    type: "object",
+    properties: {
+      center: {
+        type: "string",
+        description: "center coordinates in 'latitude,longitude' format",
+      },
+      zoomLevel: {
+        type: "number",
+        description: "zoom level ranges from 0(global level) to 20(most zoomed-in level). default is 14",
+      },
+      style: {
+        type: "string",
+        description: "style of the map, default is 'explore.day'. 'day' is the light scheme, while " +
+          "'night' is the dark scheme. The 'lite' variant educes emphasis on intricate road details " + 
+          "making it easier to overlay additional information or custom layers onto the map. The " +
+          "'logistics' variant is optimized for logistics and transportation applications. The 'topo' " +
+          "variant is optimized for topographic maps, which are useful for displaying elevation data " +
+          "and other topographic features. The 'satellite.day' is a style displying satellite imagery" + 
+          " without labels",
+        enum: [   "explore.day",
+          "explore.night",
+          "explore.satellite.day",
+          "lite.day",
+          "lite.night",
+          "lite.satellite.day",
+          "logistics.day",
+          "logistics.night",
+          "logistics.satellite.day",
+          "satellite.day",
+          "topo.day",
+          "topo.night"],
+      }
+    },
+    required: ["center", "zoomLevel", "style"],
+  },
+};
+
 const MAPS_TOOLS = [
   GEOCODE_TOOL,
   REVERSE_GEOCODE_TOOL,
   ROUTING_TOOL,
   PLACES_SEARCH_TOOL,
   TRAFFIC_TOOL,
+  DISPLAY_TOOL,
 ] as const;
 
 // API handlers
@@ -437,6 +479,29 @@ async function handleTrafficIncidents(center: string, radius: number) {
   */
 }
 
+async function handleDisplay(center: string, zoomLevel: number, style: string) {
+  // Strip spaces inside the lat/lon coordinates
+  center = center.replace(/\s+/g, "");
+  const url = "https://maps.hereapi.com/mia/v3/base/mc/center:" + 
+    center + ";zoom=" + zoomLevel + "/480x370/png8?apikey=" + HERE_MAPS_API_KEY + "&style=" + style;
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          {
+            image_url: url,
+          },
+          null,
+          0
+        )
+      },
+    ],
+    isError: false,
+  };
+}
+
 // Server setup
 const server = new Server(
   {
@@ -492,6 +557,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "maps_get_traffic_incidents": {
         const { center, radius } = request.params.arguments as { center: string; radius: number };
         return await handleTrafficIncidents(center, radius);
+      }
+
+      case "maps_display": {
+        const { center, zoomLevel, style } = request.params.arguments as { center: string; zoomLevel: number; style: string };
+        return await handleDisplay(center, zoomLevel, style);
       }
 
       default:
