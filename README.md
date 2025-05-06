@@ -52,13 +52,13 @@ The following HERE Maps services are implemented as MCP tools:
 
 6.  **Display Map:**
     *   **MCP Tool:** `maps_display`
-    *   **Description:** Show a map with the given coordinates and zoom level
+    *   **Description:** Show a map with the given coordinates, zoom level and style
     *   **HERE API:** [Map Image API v3](https://www.here.com/docs/bundle/map-image-api-v3-api-reference/page/index.html)
     *   **Input:**
         * `center` (string in 'latitude,longitude' format)
-        * `zoomLevel` (number, from 0-20, default is 14)
+        * `zoomLevel` (number, zoom level ranges from 0(global level) to 20(most zoomed-in level). default is 14.)
         * `style` (string: "explore.day", "explore.night", "explore.satellite.day", "lite.day", "lite.night", "lite.satellite.day", "logistics.day", "logistics.night", "logistics.satellite.day", "satellite.day", "topo.day", "topo.night")
-    *   **Output:** JSON with `image_url` and a rendered map image
+    *   **Output:** A rendered map image
 
 ## Getting Started
 

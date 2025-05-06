@@ -493,16 +493,6 @@ async function handleDisplay(center: string, zoomLevel: number, style: string) {
   return {
     content: [
       {
-        type: "text",
-        text: JSON.stringify(
-          {
-            image_url: url,
-          },
-          null,
-          0
-        )
-      },
-      {
         type: "image",
         data: base64Image,
         mimeType : "image/png",
