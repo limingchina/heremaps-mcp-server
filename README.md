@@ -65,7 +65,7 @@ The following HERE Maps services are implemented as MCP tools:
 Since the npm package is not yet published, currently one can only clone the repository and run the MCP server locally.
 1. Clone the repository
 ```bash
-git clone https://github.com/heremaps/here-maps-mcp-server.git
+git clone https://github.com/limingchina/here-maps-mcp-server.git
 ```
 
 2. Install Node.js and npm
