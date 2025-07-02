@@ -186,7 +186,7 @@ npm run build && npx @modelcontextprotocol/inspector -e HERE_MAPS_API_KEY=<YOU_H
 
 ## Other mapping-service MCP servers
 * [OpenStreetMap](https://github.com/jagan-shanmugam/open-streetmap-mcp)
-* [Google Maps](https://github.com/modelcontextprotocol/servers/tree/main/src/google-maps)
+* [Google Maps](https://github.com/modelcontextprotocol/servers-archived/tree/main/src/google-maps)
 
 ## Contributing
 
